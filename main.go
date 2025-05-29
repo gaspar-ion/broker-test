@@ -35,30 +35,12 @@ func main() {
 	}
 	topic := "#"
 	client.Subscribe(topic, 0, nil)
-	log.Println("Listening to ", fmt.Sprintf("%s/%s", *broker, topic))
+	log.Println("Listening to", fmt.Sprintf("%s/%s", *broker, topic))
 
 	// Página HTML
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "text/html")
-		fmt.Fprint(w, `
-<!DOCTYPE html>
-<html>
-<head><title>Eventos MQTT</title></head>
-<body>
-<h1>Eventos en tiempo real</h1>
-<ul id="eventos"></ul>
-<script>
-const ul = document.getElementById("eventos");
-const source = new EventSource("/events");
-source.onmessage = function(e) {
-	const li = document.createElement("li");
-	li.textContent = e.data;
-	ul.prepend(li);
-};
-</script>
-</body>
-</html>
-		`)
+		http.ServeFile(w, r, "index.html")
 	})
 
 	// Server-Sent Events
