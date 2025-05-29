@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Eventos MQTT en tiempo real</title>
+    <style>
+      body {
+        font-family: system-ui, sans-serif;
+        background-color: #f9f9f9;
+        margin: 0;
+        padding: 2rem;
+        color: #333;
+      }
+
+      h1 {
+        text-align: center;
+        color: #1e88e5;
+      }
+
+      ul {
+        list-style: none;
+        padding: 0;
+        max-width: 800px;
+        margin: 2rem auto;
+      }
+
+      li {
+        background: white;
+        margin: 0.5rem 0;
+        padding: 1rem;
+        border-radius: 8px;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.07);
+        transition: background 0.2s ease;
+        overflow-x: auto;
+        white-space: pre-wrap;
+        word-break: break-word;
+        font-family: monospace;
+      }
+
+      li:hover {
+        background: #f1faff;
+      }
+
+      #status {
+        text-align: center;
+        font-size: 0.9rem;
+        color: #666;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Eventos MQTT en tiempo real</h1>
+    <div id="status">Conectando...</div>
+    <ul id="eventos"></ul>
+
+    <script>
+      const ul = document.getElementById("eventos");
+      const status = document.getElementById("status");
+      const source = new EventSource("/events");
+
+      source.onopen = () => {
+        status.textContent = "Conectado ✅";
+        status.style.color = "#4caf50";
+      };
+
+      source.onerror = () => {
+        status.textContent = "Desconectado ❌";
+        status.style.color = "#e53935";
+      };
+
+      source.onmessage = function (e) {
+        const li = document.createElement("li");
+        li.textContent = e.data;
+        ul.prepend(li);
+      };
+    </script>
+  </body>
+</html>
