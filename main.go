@@ -9,6 +9,7 @@ import (
 	"sync"
 
 	mqtt "github.com/eclipse/paho.mqtt.golang"
+	"github.com/google/uuid"
 )
 
 var (
@@ -17,23 +18,43 @@ var (
 )
 
 func main() {
-	// MQTT
 	broker := flag.String("broker", "tcp://test.mosquitto.org:1883", "Broker URI. ex: tcp://10.10.1.1:1883")
 	flag.Parse()
 
+	id := uuid.New().String()
 	opts := mqtt.NewClientOptions()
 	opts.AddBroker(*broker)
-	opts.SetClientID("mqtt-sse-server")
+	opts.SetClientID(id + "_mqtt-sse-server")
+	opts.SetAutoReconnect(true)
+
+	topic := "#"
+
+	// Cuando se establece la conexión (inicial o tras reconexión)
+	opts.SetOnConnectHandler(func(client mqtt.Client) {
+		if token := client.Subscribe(topic, 0, nil); token.Wait() && token.Error() != nil {
+			log.Println("Error al suscribirse:", token.Error())
+		} else {
+			log.Println("Suscripción exitosa al topic:", topic)
+		}
+	})
+
+	// Cuando se pierde la conexión
+	opts.SetConnectionLostHandler(func(client mqtt.Client, err error) {
+		log.Println("Conexión perdida:", err)
+	})
+
+	// Manejador de mensajes recibidos
 	opts.SetDefaultPublishHandler(func(client mqtt.Client, msg mqtt.Message) {
 		text := fmt.Sprintf("[%s] %s", msg.Topic(), string(msg.Payload()))
 		broadcast(text)
 	})
 
 	client := mqtt.NewClient(opts)
+
+	// Primer intento de conexión
 	if token := client.Connect(); token.Wait() && token.Error() != nil {
-		panic(token.Error())
+		log.Fatal("Error conectando al broker MQTT:", token.Error())
 	}
-	topic := "#"
 	client.Subscribe(topic, 0, nil)
 	log.Println("Listening to", fmt.Sprintf("%s/%s", *broker, topic))
 

@@ -20,7 +20,7 @@
       ul {
         list-style: none;
         padding: 0;
-        max-width: 800px;
+        width: 270px;
         margin: 2rem auto;
       }
 
@@ -46,17 +46,58 @@
         font-size: 0.9rem;
         color: #666;
       }
+
+      .full-events {
+        display: flex;
+        flex-direction: row;
+        gap: 10px;
+        max-width: 90vw;
+        margin: 0 auto;
+        justify-content: center;
+      }
     </style>
   </head>
   <body>
     <h1>Eventos MQTT en tiempo real</h1>
     <div id="status">Conectando...</div>
-    <ul id="eventos"></ul>
+    <article class="full-events">
+      <div>
+        <h1>Mk1</h1>
+        <ul id="Mk1"></ul>
+      </div>
+      <div>
+        <h1>Mk2</h1>
+        <ul id="Mk2"></ul>
+      </div>
+      <div>
+        <h1>Mk3</h1>
+        <ul id="Mk3"></ul>
+      </div>
+      <div>
+        <h1>Mk4</h1>
+        <ul id="Mk4"></ul>
+      </div>
+      <div>
+        <h1>Mk5</h1>
+        <ul id="Mk5"></ul>
+      </div>
+      <div>
+        <h1>Other events</h1>
+        <ul id="events"></ul>
+      </div>
+    </article>
 
     <script>
-      const ul = document.getElementById("eventos");
+      const ul1 = document.getElementById("Mk1");
+      const ul2 = document.getElementById("Mk2");
+      const ul3 = document.getElementById("Mk3");
+      const ul4 = document.getElementById("Mk4");
+      const ul5 = document.getElementById("Mk5");
+      const ul = document.getElementById("events");
+
       const status = document.getElementById("status");
       const source = new EventSource("/events");
+      const lists = [];
 
       source.onopen = () => {
         status.textContent = "Conectado ✅";
@@ -70,8 +111,37 @@
 
       source.onmessage = function (e) {
         const li = document.createElement("li");
+        data = JSON.parse(e.data.split(" ")[1]);
+
+        data =
+          data?.MaquinaTapes600_1 ??
+          data?.MaquinaTapes600_2 ??
+          data?.MaquinaTapes600_3 ??
+          data?.MaquinaTapes600_4 ??
+          data?.MaquinaTapes600_5 ??
+          {};
+
         li.textContent = e.data;
-        ul.prepend(li);
+        switch (data.Id) {
+          case "Mk1":
+            ul1.prepend(li);
+            break;
+          case "Mk2":
+            ul2.prepend(li);
+            break;
+          case "Mk3":
+            ul3.prepend(li);
+            break;
+          case "Mk4":
+            ul4.prepend(li);
+            break;
+          case "Mk5":
+            ul5.prepend(li);
+            break;
+          default:
+            ul.prepend(li);
+            break;
+        }
       };
     </script>
   </body>
